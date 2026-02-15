@@ -7,7 +7,7 @@ macOS 音声入力アプリ「VoiceInput」のプロジェクト。Swift Package
 ## ディレクトリ構造
 
 ```
-voice-input/
+speak-pilot/
 ├── Package.swift                       # SPM パッケージ定義（macOS 14+）
 ├── Sources/
 │   └── VoiceInput/                     # メインアプリターゲット
@@ -16,6 +16,20 @@ voice-input/
 ├── Tests/
 │   └── VoiceInputTests/               # ユニットテスト
 │       └── VoiceInputTests.swift
+├── poc/
+│   ├── swift/                          # Swift PoC
+│   │   ├── Package.swift              # PoC 用 SPM 定義
+│   │   └── Sources/
+│   │       ├── whisperkit-realtime/   # WhisperKit リアルタイム書き起こし
+│   │       └── apple-speech-realtime/ # Apple Speech リアルタイム書き起こし
+│   └── python/                         # Python PoC（採用エンジン検証）
+│       ├── pyproject.toml             # uv プロジェクト定義
+│       ├── realtime_mlx_whisper.py    # Silero VAD + MLX Whisper（採用）
+│       ├── realtime_faster_whisper.py # faster-whisper（参考実装）
+│       └── tests/                     # 書き起こしテスト
+│           ├── test_transcription.py  # 単体テスト（VAD + Whisper）
+│           ├── test_realtime_stream.py # ストリームシミュレーション
+│           └── fixtures/              # テスト用音声ファイル
 ├── .ai-agent/                          # AI エージェント向けドキュメント
 │   ├── steering/                       # 戦略的ガイドドキュメント
 │   │   ├── market.md                   # 市場分析・競合調査
