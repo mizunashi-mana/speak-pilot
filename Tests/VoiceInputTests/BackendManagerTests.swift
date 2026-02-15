@@ -40,6 +40,13 @@ private struct MockCommandResolver: BackendCommandResolver {
     }
 }
 
+/// Mock command resolver that always fails.
+private struct FailingCommandResolver: BackendCommandResolver {
+    func resolve() throws -> BackendCommand_Launch {
+        throw ExecutableNotFoundError(name: "nonexistent")
+    }
+}
+
 @Suite("BackendManager")
 @MainActor
 struct BackendManagerTests {
@@ -53,6 +60,23 @@ struct BackendManagerTests {
         #expect(manager.state == .ready)
 
         await manager.shutdown()
+        #expect(manager.state == .idle)
+        #expect(manager.currentTranscription.isEmpty)
+    }
+
+    @Test(.timeLimit(.minutes(1)))
+    func launchAfterShutdownWorks() async throws {
+        let manager = BackendManager(commandResolver: MockCommandResolver())
+        try await manager.launch()
+        await manager.shutdown()
+        #expect(manager.state == .idle)
+
+        // Should be able to launch again
+        try await manager.launch()
+        #expect(manager.state == .ready)
+
+        await manager.shutdown()
+        #expect(manager.state == .idle)
     }
 
     @Test(.timeLimit(.minutes(1)))
@@ -145,5 +169,28 @@ struct BackendManagerTests {
         #expect(manager.currentTranscription.isEmpty)
 
         await manager.shutdown()
+    }
+
+    @Test
+    func launchFailureSetsErrorState() async throws {
+        let manager = BackendManager(commandResolver: FailingCommandResolver())
+        #expect(manager.state == .idle)
+
+        do {
+            try await manager.launch()
+            Issue.record("Expected launch to throw")
+        } catch {
+            // Expected
+        }
+
+        // State should be .error, not .starting
+        if case .error = manager.state {
+            // OK
+        } else {
+            Issue.record("Expected .error state, got \(manager.state)")
+        }
+
+        // Should be able to launch again after error (with a working resolver)
+        // (state is .error, which is allowed by the guard)
     }
 }

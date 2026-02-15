@@ -54,13 +54,18 @@ final class BackendManager {
         state = .starting
         currentTranscription = ""
 
-        let runner = ProcessRunner()
-        let command = try commandResolver.resolve()
-
-        try runner.start(
-            executableURL: command.executableURL,
-            arguments: command.arguments
-        )
+        let runner: ProcessRunner
+        do {
+            let command = try commandResolver.resolve()
+            runner = ProcessRunner()
+            try runner.start(
+                executableURL: command.executableURL,
+                arguments: command.arguments
+            )
+        } catch {
+            state = .error(error.localizedDescription)
+            throw error
+        }
 
         processRunner = runner
         startLogForwarding(runner)
@@ -109,6 +114,8 @@ final class BackendManager {
         }
 
         cleanup()
+        state = .idle
+        currentTranscription = ""
     }
 
     // MARK: - Private
