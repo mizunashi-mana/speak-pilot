@@ -32,8 +32,8 @@
 - [x] Python STT サーバ (`stt-stdio-server/`): PoC をサービス化、JSON lines プロトコル実装
 - [x] Swift バックエンドプロトコル型: BackendCommand / BackendEvent の Codable 定義
 - [x] Swift プロセスランナー: Foundation.Process + Pipe の非同期ラッパー
-- [ ] Swift バックエンドマネージャ: Python プロセスのライフサイクル管理
-- [ ] グローバルホットキー: Carbon API による Ctrl+Option+Space トグル
+- [x] Swift バックエンドマネージャ: Python プロセスのライフサイクル管理
+- [x] グローバルホットキー: Carbon API による Ctrl+Option+Space トグル
 - [ ] テキスト挿入: NSPasteboard + CGEvent、Accessibility 権限チェック
 - [ ] アプリ状態管理: @Observable AppState（BackendManager / HotkeyManager / TextInserter 統合）
 - [ ] メニューバー UI: 状態表示、開始/停止、リアルタイム文字起こし、エラー表示
