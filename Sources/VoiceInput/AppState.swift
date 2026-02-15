@@ -49,6 +49,9 @@ final class AppState {
         category: "AppState"
     )
 
+    /// Serializes text insertion to prevent clipboard interleaving.
+    private var insertionTask: Task<Void, Never>?
+
     // MARK: - Init
 
     init(
@@ -66,7 +69,14 @@ final class AppState {
     // MARK: - Public API
 
     /// Set up all subsystems: launch backend, register hotkey, check accessibility.
+    ///
+    /// Can be called from `.idle` or `.error` state to (re-)initialize.
     func setup() async {
+        guard state == .idle || isErrorState else {
+            logger.warning("setup() called in state \(String(describing: self.state))")
+            return
+        }
+
         textInserter.checkAccessibility(prompt: true)
 
         if !isAccessibilityGranted {
@@ -126,6 +136,11 @@ final class AppState {
 
     // MARK: - Private
 
+    private var isErrorState: Bool {
+        if case .error = state { return true }
+        return false
+    }
+
     private func wireUpCallbacks() {
         hotkeyManager.onToggle = { [weak self] in
             self?.toggleListening()
@@ -149,7 +164,9 @@ final class AppState {
             return
         }
 
-        Task {
+        let previousTask = insertionTask
+        insertionTask = Task {
+            await previousTask?.value
             do {
                 try await textInserter.insertText(trimmed)
                 logger.info("Inserted transcription (\(trimmed.count) chars)")
