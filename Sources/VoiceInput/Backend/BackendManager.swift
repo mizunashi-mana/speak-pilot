@@ -25,6 +25,11 @@ final class BackendManager {
     /// The latest transcription text (partial or final).
     private(set) var currentTranscription: String = ""
 
+    // MARK: - Callback
+
+    /// Called on the main actor when a final transcription is received.
+    var onFinalTranscription: (@MainActor @Sendable (String) -> Void)?
+
     // MARK: - Internal
 
     private let logger = Logger(
@@ -170,6 +175,7 @@ final class BackendManager {
             currentTranscription = text
             if isFinal {
                 logger.info("Final transcription: \(text)")
+                onFinalTranscription?(text)
             }
         case .speechEnded:
             logger.debug("Speech ended")
