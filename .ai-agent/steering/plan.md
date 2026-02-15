@@ -30,8 +30,8 @@
 #### タスク一覧
 
 - [x] Python STT サーバ (`stt-stdio-server/`): PoC をサービス化、JSON lines プロトコル実装
-- [ ] Swift バックエンドプロトコル型: BackendCommand / BackendEvent の Codable 定義
-- [ ] Swift プロセスランナー: Foundation.Process + Pipe の非同期ラッパー
+- [x] Swift バックエンドプロトコル型: BackendCommand / BackendEvent の Codable 定義
+- [x] Swift プロセスランナー: Foundation.Process + Pipe の非同期ラッパー
 - [ ] Swift バックエンドマネージャ: Python プロセスのライフサイクル管理
 - [ ] グローバルホットキー: Carbon API による Ctrl+Option+Space トグル
 - [ ] テキスト挿入: NSPasteboard + CGEvent、Accessibility 権限チェック

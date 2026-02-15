@@ -15,7 +15,8 @@ let package = Package(
         .testTarget(
             name: "VoiceInputTests",
             dependencies: ["VoiceInput"],
-            path: "Tests/VoiceInputTests"
+            path: "Tests/VoiceInputTests",
+            exclude: ["Fixtures"]
         ),
     ]
 )
