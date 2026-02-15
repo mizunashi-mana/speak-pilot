@@ -35,7 +35,7 @@ private func pythonArguments() -> [String] {
 
 @Suite("ProcessRunner")
 struct ProcessRunnerTests {
-    @Test func startAndReceiveReadyEvent() async throws {
+    @Test(.timeLimit(.minutes(1))) func startAndReceiveReadyEvent() async throws {
         let runner = ProcessRunner()
         try runner.start(
             executableURL: pythonURL(),
@@ -54,7 +54,7 @@ struct ProcessRunnerTests {
         runner.terminate()
     }
 
-    @Test func sendCommandAndReceiveEvents() async throws {
+    @Test(.timeLimit(.minutes(1))) func sendCommandAndReceiveEvents() async throws {
         let runner = ProcessRunner()
         try runner.start(
             executableURL: pythonURL(),
@@ -83,7 +83,7 @@ struct ProcessRunnerTests {
         runner.terminate()
     }
 
-    @Test func sendShutdownTerminatesProcess() async throws {
+    @Test(.timeLimit(.minutes(1))) func sendShutdownTerminatesProcess() async throws {
         let runner = ProcessRunner()
         try runner.start(
             executableURL: pythonURL(),
@@ -107,7 +107,7 @@ struct ProcessRunnerTests {
         #expect(!runner.isRunning)
     }
 
-    @Test func receiveStderrLogs() async throws {
+    @Test(.timeLimit(.minutes(1))) func receiveStderrLogs() async throws {
         let runner = ProcessRunner()
         try runner.start(
             executableURL: pythonURL(),
@@ -126,7 +126,7 @@ struct ProcessRunnerTests {
         runner.terminate()
     }
 
-    @Test func startWhileRunningThrows() async throws {
+    @Test(.timeLimit(.minutes(1))) func startWhileRunningThrows() async throws {
         let runner = ProcessRunner()
         try runner.start(
             executableURL: pythonURL(),

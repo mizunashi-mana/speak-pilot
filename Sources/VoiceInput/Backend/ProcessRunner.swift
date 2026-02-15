@@ -154,18 +154,17 @@ final class ProcessRunner: Sendable {
 
     /// Send a command to the process via stdin.
     func send(_ command: BackendCommand) throws {
-        let (handle, isRunning) = lock.withLock {
-            (_stdinHandle, _process?.isRunning ?? false)
-        }
-        guard isRunning, let handle else {
-            throw Error.notRunning
-        }
         var data = try encoder.encode(command)
         data.append(contentsOf: [UInt8(ascii: "\n")])
-        try handle.write(contentsOf: data)
+        try lock.withLock {
+            guard let handle = _stdinHandle, _process?.isRunning == true else {
+                throw Error.notRunning
+            }
+            try handle.write(contentsOf: data)
+        }
     }
 
-    /// Terminate the process gracefully, then force-kill if needed.
+    /// Terminate the process by sending SIGTERM.
     func terminate() {
         lock.withLock {
             guard let process = _process, process.isRunning else { return }
