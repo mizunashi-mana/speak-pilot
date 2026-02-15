@@ -21,7 +21,7 @@
 ### 計画中
 
 - システム全体で使えるグローバル音声入力（任意のアプリに入力可能）
-- ローカル音声認識（MLX Whisper / faster-whisper / Apple Speech）
+- ローカル音声認識（Silero VAD + MLX Whisper）
 - ホットキーによる即座の音声入力開始・停止
 - リアルタイム文字起こし表示
 

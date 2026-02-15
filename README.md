@@ -11,7 +11,7 @@ SpeakPilot は、音声入力をデフォルトの入力インターフェース
 ## Features
 
 - **グローバル音声入力** — どのアプリでも、ホットキーで即座に音声入力を開始・停止
-- **ローカル音声認識** — MLX Whisper / faster-whisper によるオンデバイス処理
+- **ローカル音声認識** — Silero VAD + MLX Whisper によるオンデバイス処理
 - **リアルタイム文字起こし** — 話しながらテキストが表示される
 - **プライバシー重視** — 音声データは端末から一切外に出ない
 
@@ -22,9 +22,9 @@ SpeakPilot は、音声入力をデフォルトの入力インターフェース
 
 ## Tech Stack
 
-- Swift / SwiftUI
-- MLX Whisper / faster-whisper / Apple Speech Framework
-- AVFoundation / Core Audio
+- Swift / SwiftUI (UI・システム統合)
+- Python / MLX Whisper + Silero VAD (音声認識バックエンド)
+- サブプロセス + stdin/stdout JSON lines (IPC)
 
 ## License
 

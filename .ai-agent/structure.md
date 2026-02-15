@@ -1,8 +1,8 @@
-# voice-input ディレクトリ構成
+# SpeakPilot ディレクトリ構成
 
 ## 概要
 
-macOS 音声入力アプリ「VoiceInput」のプロジェクト。Swift Package Manager ベースで構成。
+macOS 音声入力アプリ「SpeakPilot」のプロジェクト。Swift Package Manager ベースで構成。Python バックエンド（Silero VAD + MLX Whisper）をサブプロセスとして起動し、stdin/stdout JSON lines プロトコルで通信する。
 
 ## ディレクトリ構造
 
@@ -12,11 +12,29 @@ speak-pilot/
 ├── Sources/
 │   └── VoiceInput/                     # メインアプリターゲット
 │       ├── VoiceInputApp.swift         # @main エントリポイント（MenuBarExtra）
-│       └── ContentView.swift           # メニューバーポップオーバー UI
+│       ├── ContentView.swift           # メニューバーポップオーバー UI
+│       ├── AppState.swift              # アプリ状態管理（@Observable）[計画中]
+│       ├── Backend/                    # Python バックエンド連携 [計画中]
+│       │   ├── BackendProtocol.swift   # JSON プロトコル Codable 型
+│       │   ├── ProcessRunner.swift     # Process + Pipe 非同期ラッパー
+│       │   └── BackendManager.swift    # Python プロセスライフサイクル管理
+│       ├── Hotkey/                     # グローバルホットキー [計画中]
+│       │   └── HotkeyManager.swift     # Carbon RegisterEventHotKey
+│       └── TextInsertion/             # テキスト挿入 [計画中]
+│           └── TextInserter.swift      # NSPasteboard + CGEvent
+├── backend/                            # Python バックエンドサービス [計画中]
+│   ├── pyproject.toml                 # uv プロジェクト定義
+│   └── speak_pilot_backend/
+│       ├── __init__.py
+│       ├── __main__.py                # エントリポイント
+│       ├── service.py                 # JSON lines サービスループ
+│       ├── audio.py                   # sounddevice ラッパー
+│       ├── vad.py                     # Silero VAD ラッパー
+│       └── transcriber.py            # MLX Whisper ラッパー
 ├── Tests/
 │   └── VoiceInputTests/               # ユニットテスト
 │       └── VoiceInputTests.swift
-├── poc/
+├── poc/                                # PoC（Phase 1 完了後に削除予定）
 │   ├── swift/                          # Swift PoC
 │   │   ├── Package.swift              # PoC 用 SPM 定義
 │   │   └── Sources/

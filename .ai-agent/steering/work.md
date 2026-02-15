@@ -27,6 +27,7 @@
 
 ## 動作確認手順
 
-- `xcodebuild` または Xcode でビルド
+- `swift build` でビルド（または Xcode）
 - 実機（macOS）で動作確認
-- XCTest によるユニットテスト実行
+- `swift test` でユニットテスト実行（Swift Testing フレームワーク）
+- Python バックエンド: `uv run --project backend/ python -m pytest` でテスト実行

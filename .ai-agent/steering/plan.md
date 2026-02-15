@@ -2,11 +2,11 @@
 
 ## 現在のフェーズ
 
-**Phase 0: 基盤構築・PoC**（新規開発開始）
+**Phase 1: 基本機能実装**
 
 ## フェーズ計画
 
-### Phase 0: 基盤構築・PoC（現在）
+### Phase 0: 基盤構築・PoC（完了）
 
 音声認識の実現可能性を検証し、プロジェクトの技術基盤を確立する。
 
@@ -16,16 +16,28 @@
 - [x] 認識結果の精度・レイテンシ評価
 - [x] 採用エンジン決定: **Silero VAD + MLX Whisper** (large-v3-turbo)
 
-### Phase 1: 基本機能実装
+### Phase 1: 基本機能実装（現在）
 
-最小限の音声入力機能を動作させる。
+最小限の音声入力機能を動作させる。Swift メニューバーアプリから Python バックエンド（Silero VAD + MLX Whisper）をサブプロセスとして起動し、音声認識結果をフォーカス中のアプリに挿入する。
 
-- [ ] Swift ↔ Python 連携方式の設計・実装（IPC / ローカルサーバ等）
-- [ ] Python 音声認識バックエンドの整備（POC → プロダクション品質）
-- [ ] 基本的な UI（ステータスバーアプリ or メニューバーアプリ）
-- [ ] ホットキーによる音声入力の開始・停止
-- [ ] 認識結果のテキスト挿入（フォーカス中のアプリへ）
-- [ ] リアルタイム文字起こし表示
+#### 決定済み設計
+
+- **IPC 方式**: サブプロセス + stdin/stdout (JSON lines プロトコル)
+- **音声キャプチャ**: Python 側 (sounddevice)
+- **テキスト挿入**: NSPasteboard + CGEvent (Cmd+V シミュレーション)
+- **ホットキー**: Carbon RegisterEventHotKey (Ctrl+Option+Space)
+
+#### タスク一覧
+
+- [ ] Python バックエンドサービス (`backend/`): PoC をサービス化、JSON lines プロトコル実装
+- [ ] Swift バックエンドプロトコル型: BackendCommand / BackendEvent の Codable 定義
+- [ ] Swift プロセスランナー: Foundation.Process + Pipe の非同期ラッパー
+- [ ] Swift バックエンドマネージャ: Python プロセスのライフサイクル管理
+- [ ] グローバルホットキー: Carbon API による Ctrl+Option+Space トグル
+- [ ] テキスト挿入: NSPasteboard + CGEvent、Accessibility 権限チェック
+- [ ] アプリ状態管理: @Observable AppState（BackendManager / HotkeyManager / TextInserter 統合）
+- [ ] メニューバー UI: 状態表示、開始/停止、リアルタイム文字起こし、エラー表示
+- [ ] 統合・動作確認: エンドツーエンドで全機能を結合
 - [ ] `poc/` ディレクトリの削除（本体統合完了後）
 
 ### Phase 2: システム統合・UX 改善
@@ -52,4 +64,4 @@ macOS との深い統合とユーザー体験の磨き込み。
 
 ## 進行中の作業
 
-- Phase 1 準備: 採用エンジンの Swift 統合設計
+- Phase 1: 基本機能実装（設計完了、実装準備中）
