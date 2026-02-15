@@ -22,30 +22,43 @@
 - ~~faster-whisper~~: CTranslate2 ベース（MLX Whisper 採用のため不採用）
 - ~~Apple Speech Framework~~: Swift 6 の concurrency 制約あり、精度も MLX Whisper に劣る
 
-### Python 依存の方針
+### Swift ↔ Python 連携（決定済み）
 
-Swift アプリから Python バックエンドを呼び出す。連携方式は要設計（候補: サブプロセス + IPC、ローカル HTTP/WebSocket サーバ、組み込み Python ランタイム等）。
+- **IPC 方式**: サブプロセス + stdin/stdout (JSON lines プロトコル)
+  - Swift が `Foundation.Process` で Python スクリプトをサブプロセスとして起動
+  - コマンド (Swift → Python): `{"type": "start"}`, `{"type": "stop"}`, `{"type": "shutdown"}`
+  - イベント (Python → Swift): `{"type": "ready"}`, `{"type": "transcription", "text": "...", "is_final": true}`, etc.
+  - ログは stderr へ出力 (stdout はプロトコル専用)
+- **開発時起動**: `uv run --project backend/ python -m speak_pilot_backend`
+- **音声キャプチャ**: Python 側 (sounddevice) で実施。Swift 側はキャプチャしない
 
-### システム統合
+### システム統合（決定済み）
 
-- **入力方式**: macOS Input Method / Accessibility API / CGEvent による他アプリへのテキスト挿入（要調査）
-- **音声キャプチャ**: AVFoundation / Core Audio（Swift 側）または sounddevice（Python 側）
+- **テキスト挿入**: NSPasteboard + CGEvent (Cmd+V シミュレーション)
+  - 日本語/Unicode テキストに最も確実な方式
+  - Accessibility 権限が必要 (`AXIsProcessTrustedWithOptions` でチェック)
+  - クリップボード内容を退避・復元
+- **グローバルホットキー**: Carbon `RegisterEventHotKey` (Ctrl+Option+Space)
+  - Accessibility 権限不要、最も信頼性の高い方式
 
 ## アーキテクチャ概要
 
 ```
-┌─────────────────────────────────┐
-│         UI Layer (SwiftUI)       │
-│    ステータスバー / オーバーレイ    │
-├─────────────────────────────────┤
-│       Application Layer          │
-│   入力制御 / セッション管理        │
-├──────────────┬──────────────────┤
-│  Swift 側     │  Python バックエンド │
-│  ホットキー    │  Silero VAD        │
-│  テキスト挿入  │  MLX Whisper       │
-│  音声キャプチャ │  (IPC で連携)      │
-└──────────────┴──────────────────┘
+┌──────────────────────────────────────┐
+│          UI Layer (SwiftUI)           │
+│    MenuBarExtra / ステータス表示       │
+├──────────────────────────────────────┤
+│         Application Layer             │
+│  AppState / HotkeyManager             │
+├───────────────┬──────────────────────┤
+│  Swift 側      │  Python バックエンド   │
+│  BackendManager│  (サブプロセス)        │
+│  TextInserter  │  sounddevice (入力)   │
+│  ProcessRunner │  Silero VAD (検出)    │
+│                │  MLX Whisper (認識)   │
+├───────────────┴──────────────────────┤
+│         stdin/stdout JSON lines       │
+└──────────────────────────────────────┘
 ```
 
 ## 開発環境
@@ -57,7 +70,8 @@ Swift アプリから Python バックエンドを呼び出す。連携方式は
 
 ## テスト戦略
 
-- XCTest によるユニットテスト
+- Swift Testing フレームワーク (`import Testing`) によるユニットテスト
+- Python: pytest によるバックエンドユニットテスト
 - UI テスト（XCUITest）は必要に応じて導入
 
 ## CI/CD

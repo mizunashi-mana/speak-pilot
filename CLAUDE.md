@@ -1,4 +1,4 @@
-# voice-input
+# speak-pilot
 
 ## AI エージェント向けドキュメント
 
