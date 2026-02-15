@@ -2,13 +2,20 @@
 
 ## 概要
 
-新規プロジェクトのため、現在は AI エージェント向けドキュメントとスキル定義のみが存在する。
-アプリケーションコード（Swift / Xcode プロジェクト）は今後作成予定。
+macOS 音声入力アプリ「VoiceInput」のプロジェクト。Swift Package Manager ベースで構成。
 
 ## ディレクトリ構造
 
 ```
 voice-input/
+├── Package.swift                       # SPM パッケージ定義（macOS 14+）
+├── Sources/
+│   └── VoiceInput/                     # メインアプリターゲット
+│       ├── VoiceInputApp.swift         # @main エントリポイント（MenuBarExtra）
+│       └── ContentView.swift           # メニューバーポップオーバー UI
+├── Tests/
+│   └── VoiceInputTests/               # ユニットテスト
+│       └── VoiceInputTests.swift
 ├── .ai-agent/                          # AI エージェント向けドキュメント
 │   ├── steering/                       # 戦略的ガイドドキュメント
 │   │   ├── market.md                   # 市場分析・競合調査
@@ -17,9 +24,9 @@ voice-input/
 │   │   ├── plan.md                     # 実装計画・ロードマップ
 │   │   └── work.md                     # 開発ワークフロー・規約
 │   ├── structure.md                    # このファイル（ディレクトリ構成の説明）
-│   ├── projects/                       # 長期プロジェクト管理（空）
-│   ├── tasks/                          # 個別タスク管理（空）
-│   └── surveys/                        # 技術調査・検討（空）
+│   ├── projects/                       # 長期プロジェクト管理
+│   ├── tasks/                          # 個別タスク管理
+│   └── surveys/                        # 技術調査・検討
 ├── .claude/                            # Claude Code 設定
 │   └── skills/                         # autodev スキル定義
 │       ├── autodev-create-issue/       # GitHub Issue 作成
@@ -31,7 +38,7 @@ voice-input/
 │       ├── autodev-start-new-survey/   # 技術調査開始
 │       ├── autodev-start-new-task/     # 個別タスク開始
 │       └── autodev-steering/           # Steering ドキュメント更新
-└── CLAUDE.md                           # Claude Code 向けプロジェクト説明（作成予定）
+└── CLAUDE.md                           # Claude Code 向けプロジェクト説明
 ```
 
 ## 各ディレクトリの役割
