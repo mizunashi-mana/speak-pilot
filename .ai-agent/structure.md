@@ -22,12 +22,13 @@ speak-pilot/
 │       │   └── HotkeyManager.swift     # Carbon RegisterEventHotKey
 │       └── TextInsertion/             # テキスト挿入 [計画中]
 │           └── TextInserter.swift      # NSPasteboard + CGEvent
-├── backend/                            # Python バックエンドサービス [計画中]
+├── stt-stdio-server/                   # Python STT サーバ (stdin/stdout JSON lines)
 │   ├── pyproject.toml                 # uv プロジェクト定義
-│   └── speak_pilot_backend/
+│   └── speak_pilot_stt_stdio/
 │       ├── __init__.py
-│       ├── __main__.py                # エントリポイント
-│       ├── service.py                 # JSON lines サービスループ
+│       ├── __main__.py                # エントリポイント: python -m speak_pilot_stt_stdio
+│       ├── protocol.py                # JSON lines プロトコル型定義
+│       ├── service.py                 # メインサービスループ
 │       ├── audio.py                   # sounddevice ラッパー
 │       ├── vad.py                     # Silero VAD ラッパー
 │       └── transcriber.py            # MLX Whisper ラッパー
