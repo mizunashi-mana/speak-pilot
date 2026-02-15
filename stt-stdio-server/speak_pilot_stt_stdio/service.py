@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import sys
 import threading
-import time
 
 from .audio import AudioCapture
 from .protocol import (
@@ -31,12 +30,11 @@ class Service:
         self._audio = AudioCapture()
         self._vad = VadProcessor()
         self._transcriber = Transcriber()
-        self._running = False
-        self._listening = False
+        self._shutdown_event = threading.Event()
+        self._listening_event = threading.Event()
 
     def run(self) -> None:
         """Main service loop."""
-        self._running = True
         emit_event(ReadyEvent())
         logger.info("Service ready")
 
@@ -44,9 +42,9 @@ class Service:
         cmd_thread.start()
 
         try:
-            while self._running:
-                if not self._listening:
-                    time.sleep(0.05)
+            while not self._shutdown_event.is_set():
+                if not self._listening_event.is_set():
+                    self._listening_event.wait(timeout=0.05)
                     continue
 
                 frame = self._audio.read_frame(timeout=0.1)
@@ -82,13 +80,13 @@ class Service:
                 cmd = parse_command(line)
                 if cmd is not None:
                     self._handle_command(cmd)
-                if not self._running:
+                if self._shutdown_event.is_set():
                     break
         except Exception:
             logger.exception("Command reader error")
         finally:
             # stdin closed or error → shutdown
-            self._running = False
+            self._shutdown_event.set()
 
     def _handle_command(self, cmd: Command) -> None:
         logger.info("Command: %s", cmd.type)
@@ -98,23 +96,23 @@ class Service:
             self._stop_listening()
         elif cmd.type == "shutdown":
             self._stop_listening()
-            self._running = False
+            self._shutdown_event.set()
 
     def _start_listening(self) -> None:
-        if self._listening:
+        if self._listening_event.is_set():
             return
         try:
             self._audio.start()
-            self._listening = True
+            self._listening_event.set()
             logger.info("Listening started")
         except Exception:
             logger.exception("Failed to start audio capture")
             emit_event(ErrorEvent(message="Failed to start audio capture"))
 
     def _stop_listening(self) -> None:
-        if not self._listening:
+        if not self._listening_event.is_set():
             return
-        self._listening = False
+        self._listening_event.clear()
         self._audio.stop()
         self._vad.reset()
         logger.info("Listening stopped")

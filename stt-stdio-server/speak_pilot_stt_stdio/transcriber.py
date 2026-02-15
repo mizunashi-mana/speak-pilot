@@ -77,6 +77,9 @@ class Transcriber:
                 logger.debug("Empty transcription result")
         except Exception:
             logger.exception("Transcription failed")
+            from .protocol import ErrorEvent, emit_event
+
+            emit_event(ErrorEvent(message="Transcription failed"))
         finally:
             with self._lock:
                 self._busy = False

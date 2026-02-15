@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 import logging
 import sys
-from dataclasses import dataclass
+import threading
+from dataclasses import asdict, dataclass
 from typing import Literal
 
 logger = logging.getLogger(__name__)
@@ -45,11 +46,6 @@ def parse_command(line: str) -> Command | None:
 
 # --- Events (server -> stdout) ---
 
-EventType = Literal[
-    "ready", "speech_started", "transcription", "speech_ended", "error"
-]
-
-
 @dataclass(frozen=True, slots=True)
 class ReadyEvent:
     type: Literal["ready"] = "ready"
@@ -80,13 +76,11 @@ class ErrorEvent:
 
 Event = ReadyEvent | SpeechStartedEvent | TranscriptionEvent | SpeechEndedEvent | ErrorEvent
 
-_stdout_lock = __import__("threading").Lock()
+_stdout_lock = threading.Lock()
 
 
 def emit_event(event: Event) -> None:
     """Serialize event to JSON and write to stdout with flush."""
-    from dataclasses import asdict
-
     data = asdict(event)
     line = json.dumps(data, ensure_ascii=False)
     with _stdout_lock:
