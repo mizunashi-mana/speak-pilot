@@ -23,33 +23,17 @@ struct HotkeyManagerTests {
     }
 
     @Test
-    func dispatchHotkeyEventInvokesCallback() async throws {
+    func callbackCanBeInvoked() async throws {
         let manager = HotkeyManager()
 
         var callCount = 0
         manager.onToggle = { callCount += 1 }
 
-        // Simulate the Carbon callback path by calling dispatchHotkeyEvent directly.
-        // We need to set the static instance first (normally done by register()).
-        // Since we can't call register() without a running app event loop,
-        // we test the dispatch path in isolation.
-
-        // Use a continuation to wait for the async dispatch.
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            manager.onToggle = {
-                callCount += 1
-                continuation.resume()
-            }
-            // dispatchHotkeyEvent reads the static instance, which is set by register().
-            // In test, we simulate by accessing the internal dispatch path.
-            // Since dispatchHotkeyEvent is fileprivate, we verify the callback mechanism
-            // through the public API contract instead.
-
-            // Directly invoke the callback to verify wiring.
-            manager.onToggle?()
-        }
-
+        manager.onToggle?()
         #expect(callCount == 1)
+
+        manager.onToggle?()
+        #expect(callCount == 2)
     }
 
     @Test
