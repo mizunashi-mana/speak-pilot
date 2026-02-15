@@ -29,7 +29,7 @@
 
 #### タスク一覧
 
-- [ ] Python バックエンドサービス (`backend/`): PoC をサービス化、JSON lines プロトコル実装
+- [x] Python STT サーバ (`stt-stdio-server/`): PoC をサービス化、JSON lines プロトコル実装
 - [ ] Swift バックエンドプロトコル型: BackendCommand / BackendEvent の Codable 定義
 - [ ] Swift プロセスランナー: Foundation.Process + Pipe の非同期ラッパー
 - [ ] Swift バックエンドマネージャ: Python プロセスのライフサイクル管理

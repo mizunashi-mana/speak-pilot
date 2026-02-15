@@ -29,7 +29,7 @@
   - コマンド (Swift → Python): `{"type": "start"}`, `{"type": "stop"}`, `{"type": "shutdown"}`
   - イベント (Python → Swift): `{"type": "ready"}`, `{"type": "transcription", "text": "...", "is_final": true}`, etc.
   - ログは stderr へ出力 (stdout はプロトコル専用)
-- **開発時起動**: `uv run --project backend/ python -m speak_pilot_backend`
+- **開発時起動**: `uv run --project stt-stdio-server/ python -m speak_pilot_stt_stdio`
 - **音声キャプチャ**: Python 側 (sounddevice) で実施。Swift 側はキャプチャしない
 
 ### システム統合（決定済み）

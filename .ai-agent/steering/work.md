@@ -30,4 +30,4 @@
 - `swift build` でビルド（または Xcode）
 - 実機（macOS）で動作確認
 - `swift test` でユニットテスト実行（Swift Testing フレームワーク）
-- Python バックエンド: `uv run --project backend/ python -m pytest` でテスト実行
+- Python STT サーバ: `uv run --project stt-stdio-server/ python -m pytest` でテスト実行
