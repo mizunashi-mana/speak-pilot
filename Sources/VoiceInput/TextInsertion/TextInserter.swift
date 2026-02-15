@@ -61,16 +61,18 @@ final class TextInserter {
         // 1. Save current clipboard contents.
         let saved = savePasteboard(pasteboard)
 
+        // Ensure clipboard is restored even on Task cancellation.
+        defer { restorePasteboard(pasteboard, from: saved) }
+
         // 2. Set the text to insert.
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 
         // 3. Simulate Cmd+V.
-        simulatePaste()
+        try simulatePaste()
 
-        // 4. Wait for the paste to complete, then restore.
+        // 4. Wait for the paste to complete before restoring.
         try await Task.sleep(for: restoreDelay)
-        restorePasteboard(pasteboard, from: saved)
 
         logger.info("Inserted text (\(text.count) chars)")
     }
@@ -115,7 +117,7 @@ final class TextInserter {
 
     // MARK: - CGEvent keystroke simulation
 
-    private func simulatePaste() {
+    private func simulatePaste() throws {
         let source = CGEventSource(stateID: .hidSystemState)
 
         guard
@@ -131,7 +133,7 @@ final class TextInserter {
             )
         else {
             logger.error("Failed to create CGEvent for Cmd+V")
-            return
+            throw TextInsertionError.pasteSimulationFailed
         }
 
         keyDown.flags = .maskCommand
@@ -147,4 +149,6 @@ final class TextInserter {
 enum TextInsertionError: Error, Sendable {
     /// Accessibility permission has not been granted.
     case accessibilityNotGranted
+    /// CGEvent creation for Cmd+V simulation failed.
+    case pasteSimulationFailed
 }
