@@ -15,7 +15,7 @@ struct VoiceInputApp: App {
         case .idle:
             "mic"
         case .starting:
-            "mic.badge.ellipsis"
+            "waveform"
         case .ready:
             "mic"
         case .listening:

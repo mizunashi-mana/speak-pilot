@@ -13,8 +13,10 @@ struct ContentView: View {
         }
         .padding()
         .frame(width: 260)
-        .task {
-            await appState.setup()
+        .onAppear {
+            Task {
+                await appState.setup()
+            }
         }
     }
 
