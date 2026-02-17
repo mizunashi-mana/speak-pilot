@@ -325,8 +325,15 @@ extension FileManager {
 
 // MARK: - Resolver errors
 
-enum BackendResolverError: Error, Sendable {
+enum BackendResolverError: Error, LocalizedError, Sendable {
     case projectDirectoryNotFound
+
+    var errorDescription: String? {
+        switch self {
+        case .projectDirectoryNotFound:
+            "stt-stdio-server/ ディレクトリが見つかりません。プロジェクトルートから実行してください。"
+        }
+    }
 }
 
 struct ExecutableNotFoundError: Error, Sendable {
