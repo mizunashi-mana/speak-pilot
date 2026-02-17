@@ -37,7 +37,7 @@
 - [x] テキスト挿入: NSPasteboard + CGEvent、Accessibility 権限チェック
 - [x] アプリ状態管理: @Observable AppState（BackendManager / HotkeyManager / TextInserter 統合）
 - [x] メニューバー UI: 状態表示、開始/停止、リアルタイム文字起こし、エラー表示
-- [ ] 統合・動作確認: エンドツーエンドで全機能を結合
+- [x] 統合・動作確認: エンドツーエンドで全機能を結合
 - [ ] `poc/` ディレクトリの削除（本体統合完了後）
 
 ### Phase 2: システム統合・UX 改善

@@ -27,6 +27,9 @@ final class BackendManager {
 
     // MARK: - Callback
 
+    /// Called on the main actor when a partial transcription is received.
+    var onPartialTranscription: (@MainActor @Sendable (String) -> Void)?
+
     /// Called on the main actor when a final transcription is received.
     var onFinalTranscription: (@MainActor @Sendable (String) -> Void)?
 
@@ -176,6 +179,8 @@ final class BackendManager {
             if isFinal {
                 logger.info("Final transcription: \(text)")
                 onFinalTranscription?(text)
+            } else {
+                onPartialTranscription?(text)
             }
         case .speechEnded:
             logger.debug("Speech ended")
@@ -237,12 +242,39 @@ protocol BackendCommandResolver: Sendable {
 struct DefaultBackendCommandResolver: BackendCommandResolver {
     func resolve() throws -> BackendCommand_Launch {
         let uvURL = try findExecutable(named: "uv")
+        let projectDir = try resolveProjectDirectory()
         let arguments = [
             "run",
-            "--project", "stt-stdio-server/",
+            "--project", projectDir.path(),
             "python", "-m", "speak_pilot_stt_stdio",
         ]
         return BackendCommand_Launch(executableURL: uvURL, arguments: arguments)
+    }
+
+    /// Resolve the `stt-stdio-server/` directory to an absolute path.
+    ///
+    /// Search order:
+    /// 1. Sibling of the executable (for development via `swift run`)
+    /// 2. Walk up from the executable to find the project root containing `stt-stdio-server/`
+    private func resolveProjectDirectory() throws -> URL {
+        let fm = FileManager.default
+
+        // Start from the directory containing the executable binary.
+        let executableURL = Bundle.main.executableURL ?? URL(fileURLWithPath: ProcessInfo.processInfo.arguments[0])
+        var searchDir = executableURL.deletingLastPathComponent()
+
+        // Walk up the directory tree looking for stt-stdio-server/
+        for _ in 0..<10 {
+            let candidate = searchDir.appending(path: "stt-stdio-server")
+            if fm.isDirectory(at: candidate) {
+                return candidate
+            }
+            let parent = searchDir.deletingLastPathComponent()
+            if parent.path() == searchDir.path() { break }
+            searchDir = parent
+        }
+
+        throw BackendResolverError.projectDirectoryNotFound
     }
 
     private func findExecutable(named name: String) throws -> URL {
@@ -279,6 +311,22 @@ struct DefaultBackendCommandResolver: BackendCommandResolver {
 
         throw ExecutableNotFoundError(name: name)
     }
+}
+
+// MARK: - FileManager helper
+
+extension FileManager {
+    /// Check if a URL points to a directory.
+    func isDirectory(at url: URL) -> Bool {
+        var isDir: ObjCBool = false
+        return fileExists(atPath: url.path(), isDirectory: &isDir) && isDir.boolValue
+    }
+}
+
+// MARK: - Resolver errors
+
+enum BackendResolverError: Error, Sendable {
+    case projectDirectoryNotFound
 }
 
 struct ExecutableNotFoundError: Error, Sendable {
