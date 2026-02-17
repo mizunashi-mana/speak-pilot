@@ -146,6 +146,11 @@ final class AppState {
             self?.toggleListening()
         }
 
+        backendManager.onPartialTranscription = { [weak self] text in
+            guard let self else { return }
+            self.currentTranscription = text
+        }
+
         backendManager.onFinalTranscription = { [weak self] text in
             guard let self else { return }
             self.handleFinalTranscription(text)

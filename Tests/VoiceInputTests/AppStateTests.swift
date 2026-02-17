@@ -61,4 +61,19 @@ struct AppStateTests {
         // onFinalTranscription should be set by AppState's wireUpCallbacks.
         #expect(appState.backendManager.onFinalTranscription != nil)
     }
+
+    @Test
+    func partialTranscriptionCallbackIsWired() async throws {
+        let appState = AppState()
+        // onPartialTranscription should be set by AppState's wireUpCallbacks.
+        #expect(appState.backendManager.onPartialTranscription != nil)
+    }
+
+    @Test
+    func partialTranscriptionUpdatesCurrentTranscription() async throws {
+        let appState = AppState()
+        // Simulate a partial transcription callback.
+        appState.backendManager.onPartialTranscription?("テスト中...")
+        #expect(appState.currentTranscription == "テスト中...")
+    }
 }
