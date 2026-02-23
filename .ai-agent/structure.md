@@ -44,20 +44,6 @@ speak-pilot/
 │       ├── audio.py                   # sounddevice ラッパー
 │       ├── vad.py                     # Silero VAD ラッパー
 │       └── transcriber.py            # MLX Whisper ラッパー
-├── poc/                                # PoC（Phase 1 完了後に削除予定）
-│   ├── swift/                          # Swift PoC
-│   │   ├── Package.swift              # PoC 用 SPM 定義
-│   │   └── Sources/
-│   │       ├── whisperkit-realtime/   # WhisperKit リアルタイム書き起こし
-│   │       └── apple-speech-realtime/ # Apple Speech リアルタイム書き起こし
-│   └── python/                         # Python PoC（採用エンジン検証）
-│       ├── pyproject.toml             # uv プロジェクト定義
-│       ├── realtime_mlx_whisper.py    # Silero VAD + MLX Whisper（採用）
-│       ├── realtime_faster_whisper.py # faster-whisper（参考実装）
-│       └── tests/                     # 書き起こしテスト
-│           ├── test_transcription.py  # 単体テスト（VAD + Whisper）
-│           ├── test_realtime_stream.py # ストリームシミュレーション
-│           └── fixtures/              # テスト用音声ファイル
 ├── .github/                            # GitHub 設定
 │   ├── workflows/
 │   │   ├── ci-build.yml               # ビルド CI
