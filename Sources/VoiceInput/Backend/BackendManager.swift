@@ -65,12 +65,28 @@ final class BackendManager {
         let runner: ProcessRunner
         do {
             let command = try commandResolver.resolve()
+            #if DEBUG
+            logger.info(
+                "Launching backend: \(command.executableURL.path(), privacy: .public) \(command.arguments.joined(separator: " "), privacy: .public)"
+            )
+            #else
+            logger.info(
+                "Launching backend: \(command.executableURL.path()) \(command.arguments.joined(separator: " "))"
+            )
+            #endif
             runner = ProcessRunner()
             try runner.start(
                 executableURL: command.executableURL,
-                arguments: command.arguments
+                arguments: command.arguments,
+                environment: command.environment,
+                currentDirectoryURL: command.currentDirectoryURL
             )
         } catch {
+            #if DEBUG
+            logger.error("Failed to launch backend: \(error, privacy: .public)")
+            #else
+            logger.error("Failed to launch backend: \(error)")
+            #endif
             state = .error(error.localizedDescription)
             throw error
         }
@@ -193,8 +209,13 @@ final class BackendManager {
     private func handleProcessExit() {
         let wasExpected = (state == .idle)
         if !wasExpected {
+            #if DEBUG
+            logger.warning(
+                "Backend process exited unexpectedly in state \(String(describing: self.state), privacy: .public)")
+            #else
             logger.warning(
                 "Backend process exited unexpectedly in state \(String(describing: self.state))")
+            #endif
             if !isErrorState {
                 state = .error("Backend process exited unexpectedly")
             }
@@ -206,7 +227,11 @@ final class BackendManager {
         logTask = Task { [weak self] in
             for await line in runner.logs {
                 guard !Task.isCancelled else { return }
+                #if DEBUG
+                self?.logger.info("[\u{200B}backend] \(line, privacy: .public)")
+                #else
                 self?.logger.info("[\u{200B}backend] \(line)")
+                #endif
             }
         }
     }
@@ -220,9 +245,18 @@ final class BackendManager {
 
 // MARK: - Errors
 
-enum BackendManagerError: Error, Sendable {
+enum BackendManagerError: Error, LocalizedError, Sendable {
     case startupTimeout
     case startupFailed(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .startupTimeout:
+            "バックエンドの起動がタイムアウトしました（30秒）。Console.app で SpeakPilot のログを確認してください。"
+        case .startupFailed(let message):
+            "バックエンドの起動に失敗しました: \(message)"
+        }
+    }
 }
 
 // MARK: - Command resolver (protocol for testability)
@@ -231,6 +265,8 @@ enum BackendManagerError: Error, Sendable {
 struct BackendCommand_Launch: Sendable {
     let executableURL: URL
     let arguments: [String]
+    let environment: [String: String]?
+    let currentDirectoryURL: URL?
 }
 
 /// Resolves the executable and arguments for launching the Python backend.
@@ -248,7 +284,17 @@ struct DefaultBackendCommandResolver: BackendCommandResolver {
             "--project", projectDir.path(),
             "python", "-m", "speak_pilot_stt_stdio",
         ]
-        return BackendCommand_Launch(executableURL: uvURL, arguments: arguments)
+        // Remove UV_PROJECT_ENVIRONMENT so that `uv run --project` creates its own
+        // virtual environment instead of reusing an external one (e.g. devenv's venv)
+        // where the stt-stdio-server package is not installed.
+        var environment = ProcessInfo.processInfo.environment
+        environment.removeValue(forKey: "UV_PROJECT_ENVIRONMENT")
+        return BackendCommand_Launch(
+            executableURL: uvURL,
+            arguments: arguments,
+            environment: environment,
+            currentDirectoryURL: projectDir
+        )
     }
 
     /// Resolve the `stt-stdio-server/` directory to an absolute path.
@@ -336,6 +382,10 @@ enum BackendResolverError: Error, LocalizedError, Sendable {
     }
 }
 
-struct ExecutableNotFoundError: Error, Sendable {
+struct ExecutableNotFoundError: Error, LocalizedError, Sendable {
     let name: String
+
+    var errorDescription: String? {
+        "実行ファイル '\(name)' が見つかりません。PATH を確認してください。"
+    }
 }
