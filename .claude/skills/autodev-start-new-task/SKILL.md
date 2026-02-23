@@ -40,12 +40,13 @@ allowed-tools: Read, Write, Edit, MultiEdit, Update, WebSearch, WebFetch
 
 - 各ステップで動作確認を行う
 - `xcodebuild` または Xcode でビルドして動作検証
-- XCTest でユニットテストを実行
+- Swift Testing でユニットテストを実行
 - 必要に応じてユーザーにフィードバックをもらう
 
 ## 完了時
 
-- 完了条件をチェック
-- 作業ログに結果を記載
+- タスクの README に、完了条件をチェック
+- タスクの README に、作業ログに結果を記載
+- PR を作成する
+  - `/autodev-create-pr` を使用する
 - ユーザーに完了報告
-- PR 作成は `/autodev-create-pr` を使用する
