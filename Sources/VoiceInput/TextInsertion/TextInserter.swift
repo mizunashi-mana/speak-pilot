@@ -94,7 +94,7 @@ final class TextInserter {
             return false
         }
 
-        // `focused` is an AXUIElement bridged via AnyObject.
+        // swiftlint:disable:next force_cast — AXUIElement is a CoreFoundation type; cast always succeeds.
         let element = focused as! AXUIElement
 
         let setResult = AXUIElementSetAttributeValue(
