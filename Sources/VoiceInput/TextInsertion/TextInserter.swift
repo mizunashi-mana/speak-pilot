@@ -1,8 +1,10 @@
-/// Inserts text into the focused application using NSPasteboard + CGEvent.
+/// Inserts text into the focused application.
 ///
-/// Saves the current clipboard contents, sets the text to insert,
-/// simulates Cmd+V, then restores the original clipboard.
-/// Requires Accessibility permission for CGEvent posting.
+/// Primarily uses the Accessibility API (`kAXSelectedTextAttribute`) to
+/// insert text directly at the cursor position without clipboard interference.
+/// Falls back to NSPasteboard + CGEvent (Cmd+V simulation) when the focused
+/// element does not support Accessibility text insertion.
+/// Requires Accessibility permission.
 
 import AppKit
 import ApplicationServices
@@ -46,8 +48,10 @@ final class TextInserter {
 
     /// Insert text into the focused application.
     ///
-    /// Temporarily replaces the clipboard contents with the given text,
-    /// simulates a Cmd+V keystroke, then restores the original clipboard.
+    /// First attempts to insert via the Accessibility API
+    /// (`kAXSelectedTextAttribute`), which avoids clipboard interference.
+    /// Falls back to clipboard paste (NSPasteboard + Cmd+V) when the
+    /// Accessibility approach is not supported by the focused element.
     ///
     /// - Throws: ``TextInsertionError/accessibilityNotGranted`` if the app
     ///   does not have Accessibility permission.
@@ -56,6 +60,65 @@ final class TextInserter {
             throw TextInsertionError.accessibilityNotGranted
         }
 
+        // Try Accessibility API first (avoids clipboard interference).
+        if insertTextViaAccessibility(text) {
+            return
+        }
+
+        // Fall back to clipboard paste.
+        logger.info("Falling back to clipboard paste for text insertion")
+        try await insertTextViaClipboard(text)
+    }
+
+    // MARK: - Accessibility API insertion
+
+    /// Try to insert text using the Accessibility API.
+    ///
+    /// Sets `kAXSelectedTextAttribute` on the focused element, which
+    /// replaces the current selection (or inserts at the cursor position
+    /// when nothing is selected).
+    ///
+    /// - Returns: `true` if the text was successfully inserted.
+    private func insertTextViaAccessibility(_ text: String) -> Bool {
+        let systemWide = AXUIElementCreateSystemWide()
+
+        var focusedValue: AnyObject?
+        let focusResult = AXUIElementCopyAttributeValue(
+            systemWide,
+            kAXFocusedUIElementAttribute as CFString,
+            &focusedValue
+        )
+
+        guard focusResult == .success, let focused = focusedValue else {
+            logger.debug("Accessibility: no focused element found (\(focusResult.rawValue))")
+            return false
+        }
+
+        // `focused` is an AXUIElement bridged via AnyObject.
+        let element = focused as! AXUIElement
+
+        let setResult = AXUIElementSetAttributeValue(
+            element,
+            kAXSelectedTextAttribute as CFString,
+            text as CFTypeRef
+        )
+
+        if setResult == .success {
+            logger.info("Inserted text via Accessibility API (\(text.count) chars)")
+            return true
+        }
+
+        logger.debug(
+            "Accessibility: failed to set selected text (\(setResult.rawValue))"
+        )
+        return false
+    }
+
+    // MARK: - Clipboard paste insertion
+
+    /// Insert text by temporarily placing it on the clipboard and
+    /// simulating Cmd+V.
+    private func insertTextViaClipboard(_ text: String) async throws {
         let pasteboard = NSPasteboard.general
 
         // 1. Save current clipboard contents.
@@ -74,7 +137,7 @@ final class TextInserter {
         // 4. Wait for the paste to complete before restoring.
         try await Task.sleep(for: restoreDelay)
 
-        logger.info("Inserted text (\(text.count) chars)")
+        logger.info("Inserted text via clipboard paste (\(text.count) chars)")
     }
 
     // MARK: - Pasteboard save / restore
