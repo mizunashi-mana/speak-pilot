@@ -65,9 +65,15 @@ final class BackendManager {
         let runner: ProcessRunner
         do {
             let command = try commandResolver.resolve()
+            #if DEBUG
             logger.info(
                 "Launching backend: \(command.executableURL.path(), privacy: .public) \(command.arguments.joined(separator: " "), privacy: .public)"
             )
+            #else
+            logger.info(
+                "Launching backend: \(command.executableURL.path()) \(command.arguments.joined(separator: " "))"
+            )
+            #endif
             runner = ProcessRunner()
             try runner.start(
                 executableURL: command.executableURL,
@@ -76,7 +82,11 @@ final class BackendManager {
                 currentDirectoryURL: command.currentDirectoryURL
             )
         } catch {
+            #if DEBUG
             logger.error("Failed to launch backend: \(error, privacy: .public)")
+            #else
+            logger.error("Failed to launch backend: \(error)")
+            #endif
             state = .error(error.localizedDescription)
             throw error
         }
@@ -199,8 +209,13 @@ final class BackendManager {
     private func handleProcessExit() {
         let wasExpected = (state == .idle)
         if !wasExpected {
+            #if DEBUG
             logger.warning(
                 "Backend process exited unexpectedly in state \(String(describing: self.state), privacy: .public)")
+            #else
+            logger.warning(
+                "Backend process exited unexpectedly in state \(String(describing: self.state))")
+            #endif
             if !isErrorState {
                 state = .error("Backend process exited unexpectedly")
             }
@@ -212,7 +227,11 @@ final class BackendManager {
         logTask = Task { [weak self] in
             for await line in runner.logs {
                 guard !Task.isCancelled else { return }
+                #if DEBUG
                 self?.logger.info("[\u{200B}backend] \(line, privacy: .public)")
+                #else
+                self?.logger.info("[\u{200B}backend] \(line)")
+                #endif
             }
         }
     }
