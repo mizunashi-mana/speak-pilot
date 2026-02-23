@@ -35,7 +35,8 @@ private struct MockCommandResolver: BackendCommandResolver {
     func resolve() throws -> BackendCommand_Launch {
         BackendCommand_Launch(
             executableURL: pythonURL(),
-            arguments: pythonArguments()
+            arguments: pythonArguments(),
+            environment: nil
         )
     }
 }

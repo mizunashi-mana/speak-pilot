@@ -65,12 +65,17 @@ final class BackendManager {
         let runner: ProcessRunner
         do {
             let command = try commandResolver.resolve()
+            logger.info(
+                "Launching backend: \(command.executableURL.path()) \(command.arguments.joined(separator: " "))"
+            )
             runner = ProcessRunner()
             try runner.start(
                 executableURL: command.executableURL,
-                arguments: command.arguments
+                arguments: command.arguments,
+                environment: command.environment
             )
         } catch {
+            logger.error("Failed to launch backend: \(error)")
             state = .error(error.localizedDescription)
             throw error
         }
@@ -220,9 +225,18 @@ final class BackendManager {
 
 // MARK: - Errors
 
-enum BackendManagerError: Error, Sendable {
+enum BackendManagerError: Error, LocalizedError, Sendable {
     case startupTimeout
     case startupFailed(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .startupTimeout:
+            "バックエンドの起動がタイムアウトしました（30秒）。Console.app で SpeakPilot のログを確認してください。"
+        case .startupFailed(let message):
+            "バックエンドの起動に失敗しました: \(message)"
+        }
+    }
 }
 
 // MARK: - Command resolver (protocol for testability)
@@ -231,6 +245,7 @@ enum BackendManagerError: Error, Sendable {
 struct BackendCommand_Launch: Sendable {
     let executableURL: URL
     let arguments: [String]
+    let environment: [String: String]?
 }
 
 /// Resolves the executable and arguments for launching the Python backend.
@@ -248,7 +263,16 @@ struct DefaultBackendCommandResolver: BackendCommandResolver {
             "--project", projectDir.path(),
             "python", "-m", "speak_pilot_stt_stdio",
         ]
-        return BackendCommand_Launch(executableURL: uvURL, arguments: arguments)
+        // Remove UV_PROJECT_ENVIRONMENT so that `uv run --project` creates its own
+        // virtual environment instead of reusing an external one (e.g. devenv's venv)
+        // where the stt-stdio-server package is not installed.
+        var environment = ProcessInfo.processInfo.environment
+        environment.removeValue(forKey: "UV_PROJECT_ENVIRONMENT")
+        return BackendCommand_Launch(
+            executableURL: uvURL,
+            arguments: arguments,
+            environment: environment
+        )
     }
 
     /// Resolve the `stt-stdio-server/` directory to an absolute path.
@@ -336,6 +360,10 @@ enum BackendResolverError: Error, LocalizedError, Sendable {
     }
 }
 
-struct ExecutableNotFoundError: Error, Sendable {
+struct ExecutableNotFoundError: Error, LocalizedError, Sendable {
     let name: String
+
+    var errorDescription: String? {
+        "実行ファイル '\(name)' が見つかりません。PATH を確認してください。"
+    }
 }
