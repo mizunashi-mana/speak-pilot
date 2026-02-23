@@ -66,16 +66,17 @@ final class BackendManager {
         do {
             let command = try commandResolver.resolve()
             logger.info(
-                "Launching backend: \(command.executableURL.path()) \(command.arguments.joined(separator: " "))"
+                "Launching backend: \(command.executableURL.path(), privacy: .public) \(command.arguments.joined(separator: " "), privacy: .public)"
             )
             runner = ProcessRunner()
             try runner.start(
                 executableURL: command.executableURL,
                 arguments: command.arguments,
-                environment: command.environment
+                environment: command.environment,
+                currentDirectoryURL: command.currentDirectoryURL
             )
         } catch {
-            logger.error("Failed to launch backend: \(error)")
+            logger.error("Failed to launch backend: \(error, privacy: .public)")
             state = .error(error.localizedDescription)
             throw error
         }
@@ -199,7 +200,7 @@ final class BackendManager {
         let wasExpected = (state == .idle)
         if !wasExpected {
             logger.warning(
-                "Backend process exited unexpectedly in state \(String(describing: self.state))")
+                "Backend process exited unexpectedly in state \(String(describing: self.state), privacy: .public)")
             if !isErrorState {
                 state = .error("Backend process exited unexpectedly")
             }
@@ -211,7 +212,7 @@ final class BackendManager {
         logTask = Task { [weak self] in
             for await line in runner.logs {
                 guard !Task.isCancelled else { return }
-                self?.logger.info("[\u{200B}backend] \(line)")
+                self?.logger.info("[\u{200B}backend] \(line, privacy: .public)")
             }
         }
     }
@@ -246,6 +247,7 @@ struct BackendCommand_Launch: Sendable {
     let executableURL: URL
     let arguments: [String]
     let environment: [String: String]?
+    let currentDirectoryURL: URL?
 }
 
 /// Resolves the executable and arguments for launching the Python backend.
@@ -271,7 +273,8 @@ struct DefaultBackendCommandResolver: BackendCommandResolver {
         return BackendCommand_Launch(
             executableURL: uvURL,
             arguments: arguments,
-            environment: environment
+            environment: environment,
+            currentDirectoryURL: projectDir
         )
     }
 
