@@ -7,7 +7,7 @@
 - **UI / システム統合**: Swift + SwiftUI
 - **音声認識バックエンド**: Python (mlx-whisper + silero-vad)
 - **プラットフォーム**: macOS（Apple Silicon 専用）
-- **最小対応 OS**: macOS 14 Sonoma（予定）
+- **最小対応 OS**: macOS 14 Sonoma
 
 ### 音声認識エンジン（決定済み）
 
@@ -64,8 +64,9 @@
 ## 開発環境
 
 - **IDE**: Xcode
-- **ビルドシステム**: Swift Package Manager
+- **ビルドシステム**: Swift Package Manager (Swift tools version 6.0)
 - **パッケージ管理**: SPM
+- **開発環境管理**: devenv (Nix) — `devenv shell` で Swift / Python / uv 等の依存を一括セットアップ
 - **OS**: macOS（開発機は Apple Silicon 推奨）
 
 ## テスト戦略
@@ -76,4 +77,7 @@
 
 ## CI/CD
 
-- 未構築（今後検討）
+- **GitHub Actions**: `.github/workflows/` に構築済み
+  - `ci-build.yml`: Swift ビルド確認
+  - `ci-test.yml`: Swift テスト実行
+- **Dependabot**: `.github/dependabot.yml` で依存関係の自動更新

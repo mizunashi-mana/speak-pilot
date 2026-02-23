@@ -61,7 +61,15 @@ macOS との深い統合とユーザー体験の磨き込み。
 
 - Xcode / SPM プロジェクト初期セットアップ
 - 音声認識エンジン PoC 完了・採用決定 (Silero VAD + MLX Whisper)
+- Python STT サーバ（stt-stdio-server/）
+- Swift バックエンド連携（BackendProtocol / ProcessRunner / BackendManager）
+- グローバルホットキー（Carbon API, Ctrl+Option+Space）
+- テキスト挿入（NSPasteboard + CGEvent）
+- アプリ状態管理（@Observable AppState）
+- メニューバー UI（状態表示・トグル・文字起こし・エラー表示）
+- E2E 統合（バックエンドパス解決・部分文字起こし転送・Info.plist）
+- GitHub Actions CI（ビルド・テスト）
 
 ## 進行中の作業
 
-- Phase 1: 基本機能実装（設計完了、実装準備中）
+- Phase 1 残作業: `poc/` ディレクトリの削除

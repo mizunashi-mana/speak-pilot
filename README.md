@@ -2,30 +2,59 @@
 
 Voice-first input for macOS. Speak, and let your words land anywhere.
 
-## Overview
+## What & Why
 
-SpeakPilot は、音声入力をデフォルトの入力インターフェースにする macOS ネイティブアプリです。ホットキーひとつで音声入力を開始し、任意のアプリケーションにテキストを挿入できます。
+SpeakPilot is a native macOS app that turns voice into the default input interface. With a single hotkey, start speaking and have your words inserted into any application — no cloud, no subscription.
 
-音声認識はすべてローカルで処理されるため、クラウドへのデータ送信は不要です。
+All speech recognition runs locally on your Apple Silicon Mac using Silero VAD + MLX Whisper, so your voice data never leaves your device.
 
 ## Features
 
-- **グローバル音声入力** — どのアプリでも、ホットキーで即座に音声入力を開始・停止
-- **ローカル音声認識** — Silero VAD + MLX Whisper によるオンデバイス処理
-- **リアルタイム文字起こし** — 話しながらテキストが表示される
-- **プライバシー重視** — 音声データは端末から一切外に出ない
+- **Global voice input** — Start/stop dictation instantly with a hotkey, in any app
+- **Local speech recognition** — On-device processing with Silero VAD + MLX Whisper
+- **Real-time transcription** — See text appear as you speak
+- **Privacy-first** — Zero data sent to the cloud
 
 ## Requirements
 
-- macOS 14 Sonoma 以降
-- Apple Silicon Mac
+- macOS 14 Sonoma or later
+- Apple Silicon Mac (M1 or later)
+
+## Quick Start
+
+### Prerequisites
+
+- [Nix](https://nixos.org/) with [devenv](https://devenv.sh/) (recommended) or manually install Swift toolchain and Python with uv
+
+### Build & Run
+
+```bash
+# Enter development environment
+devenv shell
+
+# Build the Swift app
+swift build
+
+# Run the STT backend independently (for testing)
+uv run --project stt-stdio-server/ python -m speak_pilot_stt_stdio
+```
+
+### Run Tests
+
+```bash
+# Swift tests
+swift test
+
+# Python STT server tests
+uv run --project stt-stdio-server/ python -m pytest
+```
 
 ## Tech Stack
 
-- Swift / SwiftUI (UI・システム統合)
-- Python / MLX Whisper + Silero VAD (音声認識バックエンド)
-- サブプロセス + stdin/stdout JSON lines (IPC)
+- **Swift / SwiftUI** — UI and macOS system integration
+- **Python / MLX Whisper + Silero VAD** — Speech recognition backend
+- **Subprocess + stdin/stdout JSON lines** — IPC between Swift and Python
 
 ## License
 
-TBD
+Licensed under either of [Apache License, Version 2.0](LICENSE.Apache-2.0.txt) or [Mozilla Public License, Version 2.0](LICENSE.MPL-2.0.txt) at your option.
